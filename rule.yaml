@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pod-restart-alert
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  groups:
+    - name: pod-restart-alerts
+      rules:
+        - alert: PodRestartCountHigh
+          expr: |
+            increase(kube_pod_container_status_restarts_total{
+              namespace="otel-demo"
+            }[5m]) > 2
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} restarted more than 2 times in 5 minutes"
+            description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has restarted {{ $value | humanize }} times in the last 5 minutes."
